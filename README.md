@@ -1,86 +1,50 @@
-# SudoKids 🧠✨
+# SudoKids
 
-**Sudoku, который влюбляет детей в логику.**
+Судоку для детей 6–12 лет. Не просто сетка с цифрами: есть подсказки, уроки, общий пазл на день и наставник, который объясняет ход простыми словами.
 
-Полнофункциональная веб-платформа Судоку для детей 6–12 лет, с AI-наставником, ежедневными челленджами, лидербордами по городам, стикерами и Pro-подпиской.
+Демо: [открыть в браузере](https://id-preview--275d6468-9c12-4d97-b6f4-66f4da4b84f4.lovable.app)
 
-🔗 **Живой проект:** [SudoKids в Lovable](https://id-preview--275d6468-9c12-4d97-b6f4-66f4da4b84f4.lovable.app)
+## Зачем
 
-## Для кого
+Ребёнку сложно разобраться в классических приложениях — там взрослый интерфейс и никто не объясняет, *почему* ставить именно эту цифру. Здесь размер поля можно выбрать (4×4, 6×6, 9×9), сложность подстраивается, а AI Coach отвечает на вопросы по текущей позиции.
 
-Дети 6–12 лет и их родители. Альтернатива бесконечному скроллу — утренний ритуал тренировки мозга.
+## Основное
 
-## Почему это ценно
-
-Сайтов для Судоку — тысячи. Но **ни один** не сделан специально для детей с AI-наставником, который объясняет ходы на их языке. SudoKids превращает скучную головоломку в Duolingo для логики.
-
-## Что внутри (уровень «Великий» по ТЗ)
-
-| Фича | Реализовано |
-|---|---|
-| Генератор уникальных пазлов 4×4, 6×6, 9×9 с тремя уровнями сложности | ✅ |
-| Solver с проверкой уникальности решения | ✅ |
-| Заметки в клетках (pencil marks), подсказки, undo, проверка конфликтов | ✅ |
-| Таймер, счётчик ошибок и подсказок | ✅ |
-| Тёмная/светлая тема, адаптивный мобильный UI | ✅ |
-| **AI Coach** — объясняет ходы и обучает техникам (Lovable AI · Gemini 2.5 Flash) | ✅ |
-| **Daily Challenge** — общий пазл на день, детерминированный сид | ✅ |
-| **Стрики и стикеры** — 7/30 дней подряд, без ошибок, без подсказок | ✅ |
-| **Глобальный лидерборд + по городам** (например, Алматы) | ✅ |
-| Уроки техник (naked single, hidden single, naked pair, сканирование) | ✅ |
-| Авторизация Email/password + Google OAuth | ✅ |
-| Pro-подписка ($4.99/мес): безлимит AI, кастомные темы, эксклюзивные стикеры | ✅ (UI + демо-кнопка) |
-| Реальный Stripe checkout | ⏳ В разработке (демо-режим включает Pro кнопкой) |
+- Игра: заметки в клетках, отмена хода, проверка ошибок, таймер
+- Daily Challenge — один пазл на всех на сутки
+- Лидерборд (общий и по городу)
+- Стрики и стикеры за серии без ошибок и без подсказок
+- Раздел с техниками (naked single, hidden single и т.д.)
+- Вход по email или Google
+- Pro ($4.99/мес): больше запросов к наставнику, темы, стикеры — сейчас включается демо-кнопкой; Stripe ещё не подключён
 
 ## Стек
 
-- **Frontend:** TanStack Start v1 (React 19 + SSR), Tailwind v4, Motion для анимаций
-- **Backend:** Lovable Cloud (PostgreSQL + Auth + RLS), TanStack server functions
-- **AI:** Lovable AI Gateway → Gemini 2.5 Flash
-- **Дизайн:** оригинальная палитра «Morning Calm» (тёплый минимализм), типографика Fraunces + Nunito
+React 19, TanStack Start, Tailwind v4, Supabase (auth + Postgres + RLS), AI через Lovable Gateway (Gemini).
 
-## Архитектура
+## Структура проекта
 
 ```
 src/
-├── lib/
-│   ├── sudoku/engine.ts        — генератор, solver, hint-engine, валидатор
-│   ├── puzzles.functions.ts    — daily, лидерборд, submit (server fn)
-│   ├── coach.functions.ts      — AI Coach + rate-limit для Free
-│   ├── profile.functions.ts    — профиль, стикеры, статистика, Pro upgrade
-│   └── ai-gateway.server.ts    — обёртка Lovable AI Gateway
-├── components/SudokuGame.tsx   — игровой движок (UI), панель AI Coach
-├── routes/
-│   ├── index.tsx               — лендинг
-│   ├── play.tsx                — свободная игра
-│   ├── daily.tsx               — Daily Challenge + мини-лидерборд
-│   ├── leaderboard.tsx         — глобальный/city
-│   ├── profile.tsx             — стрик, стикеры, настройки, Pro
-│   ├── learn.tsx               — техники решения
-│   ├── pricing.tsx             — Free vs Pro
-│   └── auth.tsx                — login/signup + Google
+  lib/sudoku/engine.ts     — генерация и решение пазлов
+  lib/puzzles.functions.ts
+  lib/coach.functions.ts
+  lib/profile.functions.ts
+  components/SudokuGame.tsx
+  routes/                  — play, daily, leaderboard, profile, learn, pricing, auth
+supabase/migrations/       — схема БД
 ```
 
-## База данных
+Таблицы: `profiles`, `puzzles`, `daily_puzzles`, `daily_results`, `game_sessions`, `achievements`, `ai_coach_usage`. Доступ с клиента через RLS; серверные функции ходят с авторизацией.
 
-- `profiles` — игроки (имя, город, возраст, стрик, Pro)
-- `puzzles` + `daily_puzzles` — кэш сгенерированных пазлов
-- `daily_results` — лидерборд
-- `game_sessions` — авто-сохранение партий
-- `achievements` — заработанные стикеры
-- `ai_coach_usage` — rate-limit для Free
-- `user_roles` + `has_role()` — паттерн ролей без рекурсии в RLS
+## Локальный запуск
 
-Все таблицы под RLS, server-fns используют `requireSupabaseAuth`.
+```bash
+bun install
+# создайте .env с ключами Supabase и AI Gateway из панели Lovable
+bun dev
+```
 
-## Что бы я добавил дальше
+## Дальше по плану
 
-- Реальный Stripe webhook → активация Pro
-- Realtime-дуэли на скорость (Supabase Realtime)
-- Push-уведомления о Daily
-- Родительский pin-код и недельный отчёт по email
-- iOS/Android wrapper через Capacitor
-
----
-
-Сделано с 🧡 для юных мыслителей. SudoKids, 2026.
+Stripe для реальной подписки, push про daily, дуэли в realtime, отчёт для родителей на почту.
